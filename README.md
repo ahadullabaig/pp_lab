@@ -34,6 +34,9 @@ export PATH=$VIRTUAL_ENV/lib/python3.14/site-packages/nvidia/cu13/bin:$PATH   # 
 ```
 On the lab machines `mpicc`, `nvcc` and `torch` are usually preinstalled, so the commands below work as-is there.
 
+### Google Colab
+Upload `pp_lab.ipynb` to [colab.research.google.com](https://colab.research.google.com), choose **Runtime → Change runtime type → T4 GPU**, then **Runtime → Run all**. The notebook contains all 12 programs and installs MPI itself.
+
 ## How to compile and run
 
 **OpenMP (2–6)**
