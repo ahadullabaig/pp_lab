@@ -7,9 +7,13 @@
 void work(int i)
 {
     double s = 0;
-    for (long j = 0; j < (i + 1) * 5000000L; j++)   // later iterations do MORE work
+
+    int n = (i + 1) * 5000000;          // later iterations do MORE work
+
+    for (int j = 0; j < n; j++)
         s += 1;
-    printf("  Iteration %2d -> Thread %d  (work = %.0f)\n", i, omp_get_thread_num(), s);
+    
+    printf("Iteration %2d -> Thread %d\n", i, omp_get_thread_num());
 }
 
 int main()
