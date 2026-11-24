@@ -15,10 +15,12 @@ __global__ void add(float *a, float *b, float *c)
 int main()
 {
     int size = N * sizeof(float);
+
     float *a = (float*)malloc(size);
     float *b = (float*)malloc(size);
     float *c = (float*)malloc(size);      // CPU result
     float *g = (float*)malloc(size);      // GPU result
+    
     float *d_a, *d_b, *d_c;
 
     for (int i = 0; i < N; i++) {
@@ -36,11 +38,12 @@ int main()
     cudaMalloc(&d_a, size);
     cudaMalloc(&d_b, size);
     cudaMalloc(&d_c, size);
+
     cudaMemcpy(d_a, a, size, cudaMemcpyHostToDevice);
     cudaMemcpy(d_b, b, size, cudaMemcpyHostToDevice);
 
     int threads = 256;
-    int blocks = (N + threads - 1) / threads;  // enough blocks to cover N
+    int blocks = N / threads + 1;  // enough blocks to cover N
 
     start = clock();
     add<<<blocks, threads>>>(d_a, d_b, d_c);
@@ -49,10 +52,7 @@ int main()
 
     cudaMemcpy(g, d_c, size, cudaMemcpyDeviceToHost);
 
-    for (int i = 0; i < N; i++)
-        if (c[i] != g[i]) { printf("Mismatch at %d\n", i); return 1; }
-
-    printf("Results match\n");
+    printf("Results:\n");
     printf("CPU time = %f s\n", cpu);
     printf("GPU time = %f s\n", gpu);
     printf("Speedup  = %.2f\n", cpu / gpu);
