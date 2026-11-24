@@ -15,3 +15,9 @@ p9
 p10
 *.o
 a.out
+
+#VS Code Config
+.vscode/
+
+#Practice File
+practice.*
