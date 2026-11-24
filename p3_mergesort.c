@@ -7,27 +7,55 @@
 
 int orig[N], a[N], tmp[N];
 
-void merge(int l, int m, int r)
+void merge(int left, int mid, int right)
 {
-    int i = l, j = m + 1, k = l;
-    while (i <= m && j <= r)
-        tmp[k++] = (a[i] <= a[j]) ? a[i++] : a[j++];
-    while (i <= m) tmp[k++] = a[i++];
-    while (j <= r) tmp[k++] = a[j++];
-    for (i = l; i <= r; i++) a[i] = tmp[i];
+    int i = left, j = mid + 1, k = left;
+
+    while (i <= mid && j <= right)
+    {
+        if (a[i] <= a[j])
+        {
+            tmp[k] = a[i];
+            i++;
+        }
+        else
+        {
+            tmp[k] = a[j];
+            j++;
+        }
+
+        k++;
+    }
+    
+    while (i <= mid)
+    {
+        tmp[k] = a[i];
+        i++; k++;
+    }
+    
+    while (j <= right)
+    {
+        tmp[k] = a[j];
+        j++; k++;
+    }
+    
+    for (i = left; i <= right; i++) a[i] = tmp[i];
 }
 
-void mergeSort(int l, int r)
+void mergeSort(int left, int right)
 {
-    if (l >= r) return;
-    int m = (l + r) / 2;
+    if (left >= right) return;
 
-    #pragma omp task if(r - l > 10000)   // big halves become parallel tasks
-    mergeSort(l, m);
-    #pragma omp task if(r - l > 10000)
-    mergeSort(m + 1, r);
-    #pragma omp taskwait                 // wait for both halves
-    merge(l, m, r);
+    int mid = (left + right) / 2;
+
+    #pragma omp task      // each half becomes a parallel task
+    mergeSort(left, mid);
+
+    #pragma omp task
+    mergeSort(mid + 1, right);
+
+    #pragma omp taskwait  // wait for both halves
+    merge(left, mid, right);
 }
 
 void reset()                             // give every run the same unsorted data
@@ -44,24 +72,20 @@ int main()
     double start = omp_get_wtime();
     mergeSort(0, N - 1);
     double seq = omp_get_wtime() - start;
-    printf("Sequential time = %f s\n\n", seq);
+    printf("Sequential time = %f s\n", seq);
 
     // Parallel
-    for (int t = 1; t <= 8; t *= 2) {
-        reset();
-        omp_set_num_threads(t);
-        start = omp_get_wtime();
-        #pragma omp parallel
-        {
-            #pragma omp single           // one thread starts the recursion
-            mergeSort(0, N - 1);
-        }
-        double time = omp_get_wtime() - start;
-        printf("Threads = %d   Time = %f s   Speedup = %.2f\n", t, time, seq / time);
+    reset();
+    start = omp_get_wtime();
+    #pragma omp parallel
+    {
+        #pragma omp single               // one thread starts the recursion
+        mergeSort(0, N - 1);
     }
+    double par = omp_get_wtime() - start;
+    
+    printf("Parallel time   = %f s\n", par);
+    printf("Speedup         = %.2f\n", seq / par);
 
-    for (int i = 1; i < N; i++)
-        if (a[i - 1] > a[i]) { printf("NOT sorted!\n"); return 1; }
-    printf("\nArray sorted correctly\n");
     return 0;
 }
