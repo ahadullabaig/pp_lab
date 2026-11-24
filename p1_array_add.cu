@@ -6,8 +6,8 @@
 __global__ void add(int *a, int *b, int *c)
 {
     int i = threadIdx.x;              // each thread adds one element
-    if (i < N)
-        c[i] = a[i] + b[i];
+    
+    c[i] = a[i] + b[i];
 }
 
 int main()
